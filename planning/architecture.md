@@ -309,6 +309,16 @@ You:
 
 ![Nexcode Sequence Diagram](./sequence-diagram.png)
 
+**Use Case Diagram**
+
+![Nexcode Use Case Diagram](./use-case-diagram.png)
+
+**State Diagram**
+
+![Nexcode State Diagram](./state-diagram.png)
+
+
+
 ---
 
 ## Dependencies
