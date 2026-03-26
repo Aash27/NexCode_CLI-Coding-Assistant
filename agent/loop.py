@@ -1,7 +1,8 @@
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_agent
+
 from rich.console import Console
 from rich.panel import Panel
 from rich.markup import escape
@@ -209,7 +210,7 @@ async def run_agent(
 
     console.print(f"[dim]loop.py selected tools: {[t.name for t in filtered_tools]}[/dim]")
 
-    agent = create_react_agent(
+    agent = create_agent(
         model=llm,
         tools=filtered_tools,
     )
