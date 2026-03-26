@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # NexCode 🤖
 
 > **An autonomous AI coding assistant for your terminal** — reads your codebase, searches the web, queries local documentation, and edits files using natural language.
@@ -295,3 +296,6 @@ Type `clear` at the prompt to reset it, or select **n** when asked to resume at 
 ---
 
 
+=======
+# NexCode_CLI-Coding-Assistant
+>>>>>>> 987823e79c4ed0948975ec505816e381bdf255eb
