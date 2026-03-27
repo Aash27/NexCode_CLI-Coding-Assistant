@@ -1,3 +1,4 @@
+import os
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
@@ -18,7 +19,7 @@ SYSTEM_PROMPT = """You are NexCode, an AI coding assistant.
 
 You have access to the following tools only. Never call a tool not in this list:
 - read_file: read a file inside the workspace
-- write_file: write or create a file inside the workspace
+- write_file: write or save all generated files in workspace" 
 - edit_file: edit an existing file inside the workspace
 - list_directory: list files and folders in a directory inside the workspace
 - create_directory: create a new directory inside the workspace
@@ -185,6 +186,7 @@ async def run_agent(
     auto_execute: bool = False,
     messages_history: list = None,
     workspace_path: str | None = None,
+    output_dir: str | None = None, 
 ):
     """
     Core agentic loop. Streams LLM responses and displays reasoning and tool calls visibly.
@@ -194,8 +196,12 @@ async def run_agent(
     messages = list(messages_history) if messages_history else []
 
     workspace_dir = os.path.abspath(workspace_path or os.getcwd())
+    output_directory = output_dir or os.path.join(workspace_dir, "nexcode_output")
+    os.makedirs(output_directory, exist_ok=True)
+
     dynamic_system_prompt = SYSTEM_PROMPT + (
         f"\n\nIMPORTANT: Your current working directory is: {workspace_dir}. "
+        f"Save ALL generated files to: {output_directory}. "
         "Always use absolute paths starting with this directory when creating or modifying files!"
     )
 
