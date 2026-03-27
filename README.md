@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-# NexCode 🤖
+# NexCode
 
 > **An autonomous AI coding assistant for your terminal** — reads your codebase, searches the web, queries local documentation, and edits files using natural language.
 
@@ -7,18 +6,18 @@
 
 ## ✨ Features
 
-- 🧠 **Agentic loop** built with LangGraph ReAct
-- 🔌 **Multi-provider support** — Groq, Ollama, OpenAI, Anthropic
-- 📁 **Filesystem MCP** — read, write, edit, list files
-- 🌐 **Tavily MCP** — live web search and URL extraction
-- 📚 **RAG MCP** — local documentation search with HyDE retrieval and citations
-- 🖥️ **Rich CLI** — streaming output, tool panels, session history
-- ✅ **Confirm mode** — approve every tool call before execution
-- ⚡ **Auto mode** — fully autonomous execution
+- **Agentic loop** built with LangGraph ReAct
+- **Multi-provider support** — Groq, Ollama, OpenAI, Anthropic
+- **Filesystem MCP** — read, write, edit, list files
+- **Tavily MCP** — live web search and URL extraction
+- **RAG MCP** — local documentation search with HyDE retrieval and citations
+- **Rich CLI** — streaming output, tool panels, session history
+- **Confirm mode** — approve every tool call before execution
+- **Auto mode** — fully autonomous execution
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```text
 nexcode/
@@ -49,21 +48,21 @@ nexcode/
 
 ---
 
-## ⚙️ Requirements
+## Requirements
 
-| Requirement | Notes |
-|---|---|
-| Python 3.11 | Required |
-| Node.js + npm | Required for MCP servers |
-| Groq API key | Free at [console.groq.com](https://console.groq.com) |
-| Tavily API key | Free at [tavily.com](https://tavily.com) |
-| Ollama | Optional — for local models |
-| OpenAI API key | Optional |
-| Anthropic API key | Optional |
+| Requirement       | Notes                                                |
+| ----------------- | ---------------------------------------------------- |
+| Python 3.11       | Required                                             |
+| Node.js + npm     | Required for MCP servers                             |
+| Groq API key      | Free at [console.groq.com](https://console.groq.com) |
+| Tavily API key    | Free at [tavily.com](https://tavily.com)             |
+| Ollama            | Optional — for local models                          |
+| OpenAI API key    | Optional                                             |
+| Anthropic API key | Optional                                             |
 
 ---
 
-## 🚀 Setup
+## Setup
 
 ### 1. Clone the repository
 
@@ -121,7 +120,7 @@ This builds the local ChromaDB vector database used by the RAG server.
 
 ---
 
-## ▶️ Running NexCode
+## Running NexCode
 
 NexCode uses three MCP servers. The Filesystem and Tavily servers start automatically, but the **RAG server must be started manually** in a separate terminal.
 
@@ -170,7 +169,7 @@ openai/gpt-oss-120b
 
 ---
 
-## 💬 Example Prompts
+## Example Prompts
 
 ```text
 Read main.py and summarize what it does
@@ -202,31 +201,33 @@ Search the web for LangChain ReAct best practices and write the result to resear
 
 ---
 
-## 🔌 MCP Servers
+## MCP Servers
 
-| Server | Transport | Port | Started by | Used for |
-|---|---|---|---|---|
-| Filesystem MCP | stdio | — | Auto | Read, write, edit, list files |
-| Tavily MCP | stdio | — | Auto | Web search, URL extraction |
-| RAG MCP | SSE | **8001** | **Manual** | Local documentation + HyDE retrieval |
+| Server         | Transport | Port     | Started by | Used for                             |
+| -------------- | --------- | -------- | ---------- | ------------------------------------ |
+| Filesystem MCP | stdio     | —        | Auto       | Read, write, edit, list files        |
+| Tavily MCP     | stdio     | —        | Auto       | Web search, URL extraction           |
+| RAG MCP        | SSE       | **8001** | **Manual** | Local documentation + HyDE retrieval |
 
 ### Changing the RAG server port
 
 If port `8001` is already in use, update it in two places:
 
 **`rag_server/server.py`**:
+
 ```python
 mcp.run(transport="sse", host="127.0.0.1", port=8002)
 ```
 
 **`mcp_client/client.py`**:
+
 ```python
 "url": "http://127.0.0.1:8002/sse",
 ```
 
 ---
 
-## 📚 RAG — How It Works
+## RAG — How It Works
 
 ```
 User query
@@ -247,16 +248,16 @@ Final answer with inline citations [filename, chunk_id]
 
 ---
 
-## 🎮 Execution Modes
+## Execution Modes
 
-| Mode | Behavior |
-|---|---|
+| Mode      | Behavior                                                         |
+| --------- | ---------------------------------------------------------------- |
 | `confirm` | Asks **y/n** before every tool call — safe for reviewing changes |
-| `auto` | Executes all tools automatically — faster, no interruptions |
+| `auto`    | Executes all tools automatically — faster, no interruptions      |
 
 ---
 
-## 💾 Session Persistence
+## Session Persistence
 
 Conversation history is saved to:
 
@@ -268,34 +269,29 @@ Type `clear` at the prompt to reset it, or select **n** when asked to resume at 
 
 ---
 
-## 🛠️ Troubleshooting
+## Troubleshooting
 
-| Issue | Fix |
-|---|---|
+| Issue                                    | Fix                                                                     |
+| ---------------------------------------- | ----------------------------------------------------------------------- |
 | `query_documentation` missing from tools | RAG server is not running — start it with `python rag_server/server.py` |
-| Connection refused on port 8001 | Port is in use — change it in `server.py` and `client.py` |
-| Agent freezes on `query_documentation` | You are using an old stdio version of `server.py` — switch to SSE |
-| `npx` not found | Install Node.js and restart your terminal |
-| Token limit exceeded (413 error) | Type `clear` to reset session history, or shorten your prompt |
-| Vector DB not found | Run `python rag_server/ingest.py` first |
-| `conda` not recognized | Run `conda init` and restart your terminal |
-| Missing Python modules | Activate your environment and run `pip install -r requirements.txt` |
-| Model tries to call `open_file` | Switch to `llama-3.3-70b-versatile` for better tool-call compliance |
+| Connection refused on port 8001          | Port is in use — change it in `server.py` and `client.py`               |
+| Agent freezes on `query_documentation`   | You are using an old stdio version of `server.py` — switch to SSE       |
+| `npx` not found                          | Install Node.js and restart your terminal                               |
+| Token limit exceeded (413 error)         | Type `clear` to reset session history, or shorten your prompt           |
+| Vector DB not found                      | Run `python rag_server/ingest.py` first                                 |
+| `conda` not recognized                   | Run `conda init` and restart your terminal                              |
+| Missing Python modules                   | Activate your environment and run `pip install -r requirements.txt`     |
+| Model tries to call `open_file`          | Switch to `llama-3.3-70b-versatile` for better tool-call compliance     |
 
 ---
 
-## 🤝 Providers
+## Providers
 
-| Provider | Example Model | Notes |
-|---|---|---|
-| `groq` | `llama-3.3-70b-versatile` | Free API key — recommended |
-| `ollama` | `llama3.2`, `codellama` | Fully local, no key needed |
-| `openai` | `gpt-4o`, `gpt-4o-mini` | Paid API key required |
-| `anthropic` | `claude-3-5-sonnet-20241022` | Paid API key required |
+| Provider    | Example Model                | Notes                      |
+| ----------- | ---------------------------- | -------------------------- |
+| `groq`      | `llama-3.3-70b-versatile`    | Free API key — recommended |
+| `ollama`    | `llama3.1`                   | Fully local, no key needed |
+| `openai`    | `gpt-4o`, `gpt-4o-mini`      | Paid API key required      |
+| `anthropic` | `claude-3-5-sonnet-20241022` | Paid API key required      |
 
 ---
-
-
-=======
-# NexCode_CLI-Coding-Assistant
->>>>>>> 987823e79c4ed0948975ec505816e381bdf255eb

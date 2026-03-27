@@ -51,7 +51,7 @@ def print_providers():
     t.add_column("Example Model", style="white")
     t.add_column("Notes", style="dim")
     t.add_row("groq", "llama-3.3-70b-versatile", "FREE API key — recommended")
-    t.add_row("ollama", "llama3.1, codellama", "Fully local, no key needed")
+    t.add_row("ollama", "llama3.1", "Fully local, no key needed")
     t.add_row("openai", "gpt-4o, gpt-4o-mini", "Paid API key required")
     t.add_row("anthropic", "claude-3-5-sonnet-20241022", "Paid API key required")
     console.print(t)
