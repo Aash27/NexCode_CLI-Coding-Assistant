@@ -240,7 +240,7 @@ async def main():
         if not task.strip():
             continue
 
-        selected_tools = select_tools_for_task(task, tools)
+        selected_tools = tools
 
         console.print(f"[bold magenta]Task lower:[/bold magenta] {task.lower()}")
         console.print(f"[bold magenta]Selected tools:[/bold magenta] {[t.name for t in selected_tools]}")
