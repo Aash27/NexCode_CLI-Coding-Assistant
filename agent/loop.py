@@ -9,38 +9,37 @@ from rich.panel import Panel
 from rich.markup import escape
 from rich.pretty import Pretty
 
-
 console = Console()
 
 MAX_TOOL_RESULT_CHARS = 1500
 
-
 SYSTEM_PROMPT = """You are NexCode, an AI coding assistant.
 
-You have access to the following tools only. Never call a tool not in this list:
-- read_file: read a file inside the workspace
-- write_file: write or save all generated files in workspace" 
-- edit_file: edit an existing file inside the workspace
-- list_directory: list files and folders in a directory inside the workspace
-- create_directory: create a new directory inside the workspace
-- search_files: search for files by pattern inside the workspace
-- tavily-search: search the web for current information
-- tavily-extract: fetch and extract content from a specific URL
-- query_documentation: search local documentation using RAG
+You have access to the following tools. Choose the RIGHT tool based on what the user is asking:
 
-Rules:
-- Never call tools not listed above (e.g., open_file, read_text_file, bash, terminal).
-- Never read or write files outside the workspace directory.
-- Never save web search results to temp files — always answer directly from tool output.
-- For web search questions, call tavily-search ONCE and answer directly from those results.
-- Do NOT call tavily-extract unless the user explicitly asks to fetch a specific URL.
-- After successfully editing or writing a file, STOP immediately. Do not call any more tools.
-- Never call list_directory on a file path — it only works on directories.
-- Never chain tavily-search and tavily-extract together in the same turn.
-- For local documentation questions, use query_documentation only.
-- For file operations, use read_file, write_file, list_directory, etc.
-- Be concise. Keep answers short. Do not make more than one tool call per question.
-- IMPORTANT: Your total response must stay under 500 words to avoid token limits.
+- read_file: Use when the user asks about a specific file (e.g. "what is in main.py", "summarize agent/loop.py", "show me config.py")
+- write_file: Use to save any generated code or content to a file
+- edit_file: Use to modify an existing file inside the workspace
+- list_directory: Use when the user asks what files exist in a folder or directory
+- create_directory: Use to create a new folder inside the workspace
+- search_files: Use to find files by name or pattern inside the workspace
+- tavily-search: Use ONLY when the user asks about something on the web, needs current information, or asks about latest versions/news
+- tavily-extract: Use ONLY when the user explicitly provides a URL and wants its content fetched
+- query_documentation: Use ONLY when the user explicitly says "documentation" or "docs" or asks about the local RAG knowledge base
+
+Tool selection rules:
+- Never call read_text_file, read_directory, open_file, or any other tool not listed above — they do not exist
+- If the user mentions a filename (e.g. main.py, loop.py), ALWAYS use read_file first
+- Never use query_documentation for questions about local project files — use read_file instead
+- Never use query_documentation unless the user explicitly asks about "documentation" or "docs"
+- When asked to summarize a project or explore the codebase, first call list_directory on the workspace to get file names, then read each file individually
+- Never call read_file on a directory — it only works on individual file paths
+- Never save web search results to files — answer directly from tool output
+- Never chain tavily-search and tavily-extract in the same turn
+- After writing or editing a file, STOP — do not call any more tools
+- Never call list_directory on a file path — only use it on directories
+- Be concise. Do not make more than one tool call per question unless absolutely necessary
+- Your total response must stay under 500 words
 """
 
 
@@ -85,10 +84,6 @@ def show_tool_result(tool_name: str, result):
 
 
 def truncate_messages(messages: list, max_chars: int = 6000) -> list:
-    """
-    Trim older messages to keep total context under the token limit.
-    Always preserves the system prompt and last user message.
-    """
     if not messages:
         return messages
 
@@ -104,71 +99,7 @@ def truncate_messages(messages: list, max_chars: int = 6000) -> list:
     return system + non_system
 
 
-def select_tools(task: str, tools: list) -> list:
-    task_lower = task.lower()
-
-    doc_keywords = [
-        "local documentation",
-        "documentation",
-        "docs",
-        "query_documentation",
-        "langchain agents",
-        "summarize what the local documentation",
-    ]
-
-    web_keywords = [
-        "search the web",
-        "latest version",
-        "latest features",
-        "current version",
-        "what is the",
-        "look up",
-        "find online",
-        "news about",
-        "recent news",
-        "search for",
-    ]
-    url_keywords = [
-        "fetch",
-        "extract",
-        "http://",
-        "https://",
-        "from the url",
-        "from this url",
-        "from this link",
-        "summarize the content from",
-        "get content from",
-    ]
-
-    if any(k in task_lower for k in doc_keywords):
-        selected = [t for t in tools if t.name == "query_documentation"]
-        return selected if selected else tools
-
-    if any(k in task_lower for k in web_keywords):
-        # Only tavily-search, not tavily-extract — keeps response smaller
-        selected = [t for t in tools if t.name == "tavily-search"]
-        return selected if selected else tools
-    
-    if any(k in task_lower for k in url_keywords):
-        selected = [t for t in tools if t.name in {"tavily-extract", "tavily-search"}]
-        return selected if selected else tools
-    
-    priority_tool_names = {
-        "read_file",
-        "write_file",
-        "edit_file",
-        "list_directory",
-        "create_directory",
-        "search_files",
-        "tavily-search",
-        "query_documentation",
-    }
-    selected = [t for t in tools if t.name in priority_tool_names]
-    return selected if selected else tools
-
-
 def _apply_system_message(messages: list, dynamic_system_prompt: str) -> list:
-    """Ensure a single fresh system prompt (correct workspace) when resuming saved sessions."""
     messages = [m for m in messages if isinstance(m, dict)]
     if not messages:
         return [{"role": "system", "content": dynamic_system_prompt}]
@@ -186,13 +117,8 @@ async def run_agent(
     auto_execute: bool = False,
     messages_history: list = None,
     workspace_path: str | None = None,
-    output_dir: str | None = None, 
+    output_dir: str | None = None,
 ):
-    """
-    Core agentic loop. Streams LLM responses and displays reasoning and tool calls visibly.
-    """
-    import os
-
     messages = list(messages_history) if messages_history else []
 
     workspace_dir = os.path.abspath(workspace_path or os.getcwd())
@@ -206,19 +132,12 @@ async def run_agent(
     )
 
     messages = _apply_system_message(messages, dynamic_system_prompt)
-
     messages.append({"role": "user", "content": task})
-
-    # Trim context to stay under token limits for openai/gpt-oss-120b on Groq (8k TPM)
     messages = truncate_messages(messages, max_chars=6000)
-
-    filtered_tools = select_tools(task, tools)
-
-    console.print(f"[dim]loop.py selected tools: {[t.name for t in filtered_tools]}[/dim]")
 
     agent = create_agent(
         model=llm,
-        tools=filtered_tools,
+        tools=tools,  # pass ALL tools — LLM decides
     )
 
     console.print()
@@ -260,7 +179,6 @@ async def run_agent(
             if hasattr(msg_chunk, "type") and msg_chunk.type == "tool":
                 result_preview = msg_chunk.content
 
-                # Truncate tool result before it enters agent context
                 if isinstance(result_preview, str) and len(result_preview) > MAX_TOOL_RESULT_CHARS:
                     result_preview = result_preview[:MAX_TOOL_RESULT_CHARS] + "\n... [truncated]"
 
