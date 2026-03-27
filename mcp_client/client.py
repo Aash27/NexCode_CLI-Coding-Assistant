@@ -2,8 +2,7 @@ import os
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from config.settings import TAVILY_API_KEY
 
-
-def build_mcp_client(workspace_path: str) -> MultiServerMCPClient:
+def build_mcp_client(workspace_path: str, provider: str = None, model: str = None , output_dir: str = None) -> MultiServerMCPClient:
     """
     Connects to all 3 required MCP servers:
     1. filesystem  — read/write/list local files
@@ -12,7 +11,6 @@ def build_mcp_client(workspace_path: str) -> MultiServerMCPClient:
     """
     return MultiServerMCPClient(
         {
-            # Server 1: Official Filesystem MCP Server
             "filesystem": {
                 "transport": "stdio",
                 "command": "npx",
@@ -20,10 +18,9 @@ def build_mcp_client(workspace_path: str) -> MultiServerMCPClient:
                     "-y",
                     "@modelcontextprotocol/server-filesystem",
                     workspace_path,
+                    output_dir,
                 ],
             },
-
-            # Server 2: Tavily Web Search
             "tavily": {
                 "transport": "stdio",
                 "command": "npx",
@@ -33,8 +30,6 @@ def build_mcp_client(workspace_path: str) -> MultiServerMCPClient:
                     "TAVILY_API_KEY": TAVILY_API_KEY or "",
                 },
             },
-
-            # Server 3: Custom RAG MCP Server (SSE — avoids stdio hang)
             "rag": {
                 "transport": "sse",
                 "url": "http://127.0.0.1:8001/sse",
