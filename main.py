@@ -171,6 +171,10 @@ async def main():
     )
     workspace = os.path.abspath(os.path.expanduser(workspace))
 
+    output_dir = os.path.join(workspace, "nexcode_output")
+    os.makedirs(output_dir, exist_ok=True)
+
+
     def persist():
         save_session_state(
             SessionState(
@@ -199,7 +203,7 @@ async def main():
     console.print("[green]✓ Tavily MCP server connected[/green]")
     console.print("[green]✓ RAG MCP server connected[/green]")
 
-    client = build_mcp_client(workspace, provider, model)
+    client = build_mcp_client(workspace, provider, model, output_dir)
     tools = await client.get_tools()
 
     t = Table(title="Loaded MCP Tools", border_style="green")
@@ -254,6 +258,7 @@ async def main():
                     auto_execute=(mode == "auto"),
                     messages_history=messages_history,
                     workspace_path=workspace,
+                    output_dir=output_dir,
                 ),
                 timeout=AGENT_TIMEOUT_SECONDS,
             )
