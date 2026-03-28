@@ -4,7 +4,7 @@
 
 ---
 
-## ✨ Features
+## Features
 
 - **Agentic loop** built with LangGraph ReAct
 - **Multi-provider support** — Groq, Ollama, OpenAI, Anthropic
@@ -290,7 +290,7 @@ Type `clear` at the prompt to reset it, or select **n** when asked to resume at 
 | Provider    | Example Model                | Notes                      |
 | ----------- | ---------------------------- | -------------------------- |
 | `groq`      | `llama-3.3-70b-versatile`    | Free API key — recommended |
-| `ollama`    | `llama3.1`                   | Fully local, no key needed |
+| `ollama`    | `qwen2.5:7b`                 | Fully local, no key needed |
 | `openai`    | `gpt-4o`, `gpt-4o-mini`      | Paid API key required      |
 | `anthropic` | `claude-3-5-sonnet-20241022` | Paid API key required      |
 

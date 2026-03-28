@@ -2,7 +2,7 @@ import os
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-from langchain.agents import create_agent
+from langgraph.prebuilt import create_react_agent
 
 from rich.console import Console
 from rich.panel import Panel
@@ -41,6 +41,7 @@ Tool selection rules:
 - Be concise. Do not make more than one tool call per question unless absolutely necessary
 - Your total response must stay under 500 words
 """
+
 
 
 def show_reasoning(text: str):
@@ -135,7 +136,7 @@ async def run_agent(
     messages.append({"role": "user", "content": task})
     messages = truncate_messages(messages, max_chars=6000)
 
-    agent = create_agent(
+    agent = create_react_agent(
         model=llm,
         tools=tools,  # pass ALL tools — LLM decides
     )
@@ -147,11 +148,13 @@ async def run_agent(
     full_response = ""
     current_tool = None
     streamed_text_buffer = ""
+    seen_tool_calls = set()
 
     try:
         async for msg_chunk, metadata in agent.astream(
             {"messages": messages},
             stream_mode="messages",
+            config={"recursion_limit": 10},
         ):
             if hasattr(msg_chunk, "tool_call_chunks") and msg_chunk.tool_call_chunks:
                 for tc in msg_chunk.tool_call_chunks:
@@ -159,6 +162,11 @@ async def run_agent(
                     tool_args = tc.get("args", "")
 
                     if tool_name and tool_name != current_tool:
+                        call_key = (tool_name, str(tool_args))
+                        if call_key in seen_tool_calls:
+                            console.print("[yellow]⚠ Duplicate tool call detected — stopping loop.[/yellow]")
+                            break
+                        seen_tool_calls.add(call_key)
                         current_tool = tool_name
                         show_tool_call(tool_name, tool_args)
 
